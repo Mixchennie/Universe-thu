@@ -7,6 +7,7 @@ import { Client } from 'pg'
 import * as schema from './schema'
 import sampleData from '@/lib/sample-data'
 
+
 loadEnvConfig(cwd())
 
 const main = async () => {
