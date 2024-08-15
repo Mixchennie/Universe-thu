@@ -1,5 +1,4 @@
 'use client'
-
 import slugify from 'slugify'
 import {
   Form,
@@ -25,7 +24,6 @@ import { UploadButton } from '@/lib/uploadthing'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-
 export default function ProductForm({
   type,
   product,
@@ -36,7 +34,6 @@ export default function ProductForm({
   productId?: string
 }) {
   const router = useRouter()
-
   const form = useForm<z.infer<typeof insertProductSchema>>({
     resolver:
       type === 'Update'
@@ -45,9 +42,7 @@ export default function ProductForm({
     defaultValues:
       product && type === 'Update' ? product : productDefaultValues,
   })
-
   const { toast } = useToast()
-
   async function onSubmit(values: z.infer<typeof insertProductSchema>) {
     if (type === 'Create') {
       const res = await createProduct(values)
@@ -82,7 +77,7 @@ export default function ProductForm({
   const images = form.watch('images')
   const isFeatured = form.watch('isFeatured')
   const banner = form.watch('banner')
-
+  console.log(form.formState.errors)
   return (
     <Form {...form}>
       <form
@@ -100,19 +95,16 @@ export default function ProductForm({
                 <FormControl>
                   <Input placeholder="Enter product name" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="slug"
             render={({ field }: { field: any }) => (
               <FormItem className="w-full">
                 <FormLabel>Slug</FormLabel>
-
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -133,7 +125,6 @@ export default function ProductForm({
                     </button>
                   </div>
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -153,7 +144,6 @@ export default function ProductForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="brand"
@@ -163,7 +153,6 @@ export default function ProductForm({
                 <FormControl>
                   <Input placeholder="Enter product brand" {...field} />
                 </FormControl>
-
                 <FormMessage />
               </FormItem>
             )}
@@ -201,7 +190,6 @@ export default function ProductForm({
             )}
           />
         </div>
-
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
@@ -239,7 +227,6 @@ export default function ProductForm({
                     </div>
                   </CardContent>
                 </Card>
-
                 <FormMessage />
               </FormItem>
             )}

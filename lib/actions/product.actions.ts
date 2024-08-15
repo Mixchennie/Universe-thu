@@ -8,13 +8,11 @@ import { revalidatePath } from 'next/cache'
 import { formatError } from '../utils'
 import { z } from 'zod'
 import { insertProductSchema, updateProductSchema } from '../validator'
-
 // CREATE
 export async function createProduct(data: z.infer<typeof insertProductSchema>) {
   try {
     const product = insertProductSchema.parse(data)
     await db.insert(products).values(product)
-
     revalidatePath('/admin/products')
     return {
       success: true,
@@ -24,7 +22,6 @@ export async function createProduct(data: z.infer<typeof insertProductSchema>) {
     return { success: false, message: formatError(error) }
   }
 }
-
 // UPDATE
 export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
   try {
@@ -43,14 +40,12 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
     return { success: false, message: formatError(error) }
   }
 }
-
 // GET
 export async function getProductById(productId: string) {
   return await db.query.products.findFirst({
     where: eq(products.id, productId),
   })
 }
-
 export async function getLatestProducts() {
   const data = await db.query.products.findMany({
     orderBy: [desc(products.createdAt)],
@@ -119,6 +114,23 @@ export async function getAllProducts({
     data,
     totalPages: Math.ceil(dataCount[0].count / limit),
   }
+}
+
+export async function getAllCategories() {
+  const data = await db
+    .selectDistinctOn([products.category], { name: products.category })
+    .from(products)
+    .orderBy(products.category)
+  return data
+}
+
+export async function getFeaturedProducts() {
+  const data = await db.query.products.findMany({
+    where: eq(products.isFeatured, true),
+    orderBy: [desc(products.createdAt)],
+    limit: 4,
+  })
+  return data
 }
 // DELETE
 export async function deleteProduct(id: string) {
