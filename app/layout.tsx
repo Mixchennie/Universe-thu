@@ -2,7 +2,7 @@ import './globals.css'
 import React from "react"
 import { Poppins as FontSans } from 'next/font/google'
 import { cn } from '@/lib/utils'
-// import { Toaster } from '@/components/ui/toaster'
+import { Toaster } from '@/components/ui/toaster'
 import { Metadata } from 'next'
 // import { ThemeProvider } from '@/components/shared/theme-provider'
 // import { APP_DESCRIPTION, APP_NAME } from '@/lib/constants'
@@ -32,6 +32,7 @@ export default function RootLayout({
         )}
       >    
           {children}
+          <Toaster />
       </body>
     </html>
   )
