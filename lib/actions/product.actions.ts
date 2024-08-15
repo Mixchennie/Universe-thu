@@ -1,7 +1,5 @@
 'use server'
-
 import { desc } from 'drizzle-orm'
-
 import db from '@/db/drizzle'
 import { products } from '@/db/schema'
 import { and, count, eq, ilike, sql } from 'drizzle-orm/sql'
@@ -60,13 +58,11 @@ export async function getLatestProducts() {
   })
   return data
 }
-
 export async function getProductBySlug(slug: string) {
   return await db.query.products.findFirst({
     where: eq(products.slug, slug),
   })
 }
-
 export async function getAllProducts({
   query,
   limit = PAGE_SIZE,
@@ -107,7 +103,6 @@ export async function getAllProducts({
       : sort === 'rating'
       ? desc(products.rating)
       : desc(products.createdAt)
-
   const condition = and(queryFilter, categoryFilter, ratingFilter, priceFilter)
   const data = await db
     .select()
@@ -116,33 +111,14 @@ export async function getAllProducts({
     .orderBy(order)
     .offset((page - 1) * limit)
     .limit(limit)
-
   const dataCount = await db
     .select({ count: count() })
     .from(products)
     .where(condition)
-
   return {
     data,
     totalPages: Math.ceil(dataCount[0].count / limit),
   }
-}
-
-export async function getAllCategories() {
-  const data = await db
-    .selectDistinctOn([products.category], { name: products.category })
-    .from(products)
-    .orderBy(products.category)
-  return data
-}
-
-export async function getFeaturedProducts() {
-  const data = await db.query.products.findMany({
-    where: eq(products.isFeatured, true),
-    orderBy: [desc(products.createdAt)],
-    limit: 4,
-  })
-  return data
 }
 // DELETE
 export async function deleteProduct(id: string) {
