@@ -15,22 +15,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import Link from 'next/link'
-
 export const metadata: Metadata = {
   title: `Admin Dashboard - ${APP_NAME}`,
 }
-
 export default async function DashboardPage() {
   const session = await auth()
   if (session?.user.role !== 'admin')
     throw new Error('admin permission required')
-
   const summary = await getOrderSummary()
-
   return (
     <div className="space-y-4">
       <h1 className="h2-bold">Dashboard</h1>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -65,7 +60,6 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Products</CardTitle>
@@ -81,7 +75,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <CardTitle>Sales Chart</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <Charts
@@ -111,12 +105,10 @@ export default async function DashboardPage() {
                     <TableCell>
                       {order.user?.name ? order.user.name : 'Deleted user'}
                     </TableCell>
-
                     <TableCell>
                       {formatDateTime(order.createdAt).dateOnly}
                     </TableCell>
                     <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
-
                     <TableCell>
                       <Link href={`/order/${order.id}`}>
                         <span className="px-2">Details</span>

@@ -1,54 +1,36 @@
-'use client'
-
-import { cn } from '@/lib/utils'
+import { APP_NAME } from '@/lib/constants'
+import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import React from 'react'
+import MainNav from './main-nav'
+import Menu from '@/components/shared/header/menu'
 
-const links = [
-  {
-    title: 'Overview',
-    href: '/admin/overview',
-  },
-  {
-    title: 'Products',
-    href: '/admin/products',
-  },
-  {
-    title: 'Orders',
-    href: '/admin/orders',
-  },
-  {
-    title: 'Users',
-    href: '/admin/users',
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-  },
-]
-export default function MainNav({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLElement>) {
-  const pathname = usePathname()
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <nav
-      className={cn('flex items-center space-x-4 lg:space-x-6', className)}
-      {...props}
-    >
-      {links.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            'text-sm font-medium transition-colors hover:text-primary',
-            pathname.includes(item.href) ? '' : 'text-muted-foreground'
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
+    <>
+      <div className="flex flex-col">
+        <div className="border-b">
+          <div className="flex h-16 items-center px-4">
+            <Link href="/" className="w-36">
+              <Image
+                src="/assets/icons/logo.svg"
+                width={48}
+                height={48}
+                alt={`${APP_NAME} logo`}
+              />
+            </Link>
+            <MainNav className="mx-6" />
+            <div className="ml-auto flex items-center space-x-4">
+              <Menu />
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 space-y-4 p-8 pt-6">{children}</div>
+      </div>
+    </>
   )
 }
