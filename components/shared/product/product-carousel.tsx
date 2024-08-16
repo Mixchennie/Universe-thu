@@ -20,7 +20,7 @@ export default function ProductCarousel({ data }: { data: Product[] }) {
       }}
       plugins={[
         Autoplay({
-          delay: 2000,
+          delay: 1800,
           stopOnInteraction: true,
           stopOnMouseEnter: true,
         }),

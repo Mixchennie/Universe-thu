@@ -1,5 +1,4 @@
 'use server'
-
 import { auth } from '@/auth'
 import { getMyCart } from './cart.actions'
 import { getUserById } from './user.actions'
@@ -10,10 +9,11 @@ import { carts, orderItems, orders, products, users } from '@/db/schema'
 import { count, desc, eq, sql, sum } from 'drizzle-orm'
 import { isRedirectError } from 'next/dist/client/components/redirect'
 import { formatError } from '../utils'
-import { paypal } from '@/lib/paypal'
+import { paypal } from '../paypal'
 import { revalidatePath } from 'next/cache'
 import { PaymentResult } from '@/types'
-import { PAGE_SIZE } from '@/lib/constants'
+import { PAGE_SIZE } from '../constants'
+import { sendPurchaseReceipt } from '@/email'
 
 // GET
 export async function getOrderById(orderId: string) {
@@ -34,7 +34,6 @@ export async function getMyOrders({
 }) {
   const session = await auth()
   if (!session) throw new Error('User is not authenticated')
-
   const data = await db.query.orders.findMany({
     where: eq(orders.userId, session.user.id!),
     orderBy: [desc(products.createdAt)],
@@ -45,7 +44,6 @@ export async function getMyOrders({
     .select({ count: count() })
     .from(orders)
     .where(eq(orders.userId, session.user.id!))
-
   return {
     data,
     totalPages: Math.ceil(dataCount[0].count / limit),
@@ -58,7 +56,6 @@ export async function getOrderSummary() {
   const ordersPrice = await db
     .select({ sum: sum(orders.totalPrice) })
     .from(orders)
-
   const salesData = await db
     .select({
       months: sql<string>`to_char(${orders.createdAt},'MM/YY')`,
@@ -96,24 +93,9 @@ export async function getAllOrders({
     with: { user: { columns: { name: true } } },
   })
   const dataCount = await db.select({ count: count() }).from(orders)
-
   return {
     data,
     totalPages: Math.ceil(dataCount[0].count / limit),
-  }
-}
-
-// DELETE
-export async function deleteOrder(id: string) {
-  try {
-    await db.delete(orders).where(eq(orders.id, id))
-    revalidatePath('/admin/orders')
-    return {
-      success: true,
-      message: 'Order deleted successfully',
-    }
-  } catch (error) {
-    return { success: false, message: formatError(error) }
   }
 }
 // CREATE
@@ -126,7 +108,6 @@ export const createOrder = async () => {
     if (!cart || cart.items.length === 0) redirect('/cart')
     if (!user.address) redirect('/shipping-address')
     if (!user.paymentMethod) redirect('/payment-method')
-
     const order = insertOrderSchema.parse({
       userId: user.id,
       shippingAddress: user.address,
@@ -166,7 +147,20 @@ export const createOrder = async () => {
     return { success: false, message: formatError(error) }
   }
 }
-// / UPDATE
+// DELETE
+export async function deleteOrder(id: string) {
+  try {
+    await db.delete(orders).where(eq(orders.id, id))
+    revalidatePath('/admin/orders')
+    return {
+      success: true,
+      message: 'Order deleted successfully',
+    }
+  } catch (error) {
+    return { success: false, message: formatError(error) }
+  }
+}
+// UPDATE
 export async function createPayPalOrder(orderId: string) {
   try {
     const order = await db.query.orders.findFirst({
@@ -197,7 +191,6 @@ export async function createPayPalOrder(orderId: string) {
     return { success: false, message: formatError(err) }
   }
 }
-
 export async function approvePayPalOrder(
   orderId: string,
   data: { orderID: string }
@@ -207,7 +200,6 @@ export async function approvePayPalOrder(
       where: eq(orders.id, orderId),
     })
     if (!order) throw new Error('Order not found')
-
     const captureData = await paypal.capturePayment(data.orderID)
     if (
       !captureData ||
@@ -234,7 +226,6 @@ export async function approvePayPalOrder(
     return { success: false, message: formatError(err) }
   }
 }
-
 export const updateOrderToPaid = async ({
   orderId,
   paymentResult,
@@ -267,7 +258,16 @@ export const updateOrderToPaid = async ({
       })
       .where(eq(orders.id, orderId))
   })
+  const updatedOrder = await db.query.orders.findFirst({
+    where: eq(orders.id, orderId),
+    with: { orderItems: true, user: { columns: { name: true, email: true } } },
+  })
+  if (!updatedOrder) {
+    throw new Error('Order not found')
+  }
+  await sendPurchaseReceipt({ order: updatedOrder })
 }
+
 export async function updateOrderToPaidByCOD(orderId: string) {
   try {
     await updateOrderToPaid({ orderId })
@@ -277,7 +277,6 @@ export async function updateOrderToPaidByCOD(orderId: string) {
     return { success: false, message: formatError(err) }
   }
 }
-
 export async function deliverOrder(orderId: string) {
   try {
     const order = await db.query.orders.findFirst({
@@ -285,8 +284,6 @@ export async function deliverOrder(orderId: string) {
     })
     if (!order) throw new Error('Order not found')
     if (!order.isPaid) throw new Error('Order is not paid')
-    order.isDelivered = true
-    order.deliveredAt = new Date()
     await db
       .update(orders)
       .set({

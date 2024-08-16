@@ -120,7 +120,7 @@ export default function CartForm({ cart }: { cart?: Cart }) {
             <Card>
               <CardContent className="p-4 gap-4">
                 <div className="pb-3 text-xl">
-                  Subtotal ({cart.items.reduce((a, c) => a + c.qty, 0)}):
+                  Subtotal  ({cart.items.reduce((a, c) => a + c.qty, 0)}):
                   {formatCurrency(cart.itemsPrice)}
                 </div>
                 <Button

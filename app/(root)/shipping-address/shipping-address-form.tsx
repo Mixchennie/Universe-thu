@@ -1,19 +1,26 @@
-"use client"
-
-import { shippingAddressSchema } from "@/lib/validator"
-import { ShippingAddress } from "@/types"
-import { useRouter } from "next/navigation"
-import { SubmitHandler, useForm } from "react-hook-form"
+'use client'
+import { ShippingAddress } from '@/types'
+import { useRouter } from 'next/navigation'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { shippingAddressDefaultValues } from "@/lib/constants"
-import { useToast } from "@/components/ui/use-toast"
-import { useTransition } from "react"
-import { updateUserAddress } from "@/lib/actions/user.actions"
-import CheckoutSteps from "@/components/shared/checkout-steps"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Loader } from "lucide-react"
+import { shippingAddressSchema } from '@/lib/validator'
+import { shippingAddressDefaultValues } from '@/lib/constants'
+import { useToast } from '@/components/ui/use-toast'
+import { useTransition } from 'react'
+import { updateUserAddress } from '@/lib/actions/user.actions'
+import CheckoutSteps from '@/components/shared/checkout-steps'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Loader } from 'lucide-react'
+import ShippingAddressMap from '@/components/shared/map'
 
 export default function ShippingAddressForm({
   address,
@@ -21,16 +28,13 @@ export default function ShippingAddressForm({
   address: ShippingAddress | null
 }) {
   const router = useRouter()
-
   const form = useForm<ShippingAddress>({
     resolver: zodResolver(shippingAddressSchema),
     defaultValues: address || shippingAddressDefaultValues,
   })
   const { toast } = useToast()
-
   const [isPending, startTransition] = useTransition()
-  const onSubmit: SubmitHandler<ShippingAddress>
-  = async (values) => {
+  const onSubmit: SubmitHandler<ShippingAddress> = async (values) => {
     startTransition(async () => {
       const res = await updateUserAddress(values)
       if (!res.success) {
@@ -42,6 +46,11 @@ export default function ShippingAddressForm({
       }
       router.push('/payment-method')
     })
+  }
+  const setShippingLocation = ({ lat, lng }: { lat: number; lng: number }) => {
+    console.log(lat, lng)
+    form.setValue('lat', lat)
+    form.setValue('lng', lng)
   }
 
   return (
@@ -130,6 +139,9 @@ export default function ShippingAddressForm({
               />
             </div>
 
+            <div>
+              <ShippingAddressMap setShippingLocation={setShippingLocation} />
+            </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={isPending}>
                 {isPending ? (

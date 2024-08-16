@@ -1,36 +1,45 @@
-import { APP_NAME } from '@/lib/constants'
-import Image from 'next/image'
-import Link from 'next/link'
+import type { Metadata } from 'next'
+import './globals.css'
+import { Poppins as FontSans } from 'next/font/google'
+import { cn } from '@/lib/utils'
+import { Toaster } from '@/components/ui/toaster'
 import React from 'react'
-import MainNav from './main-nav'
-import Menu from '@/components/shared/header/menu'
+import { ThemeProvider } from '@/components/shared/theme-provider'
+import { APP_DESCRIPTION, APP_NAME } from '@/lib/constants'
 
-export default async function AdminLayout({
+const fontSans = FontSans({
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  variable: '--font-sans',
+})
+
+export const metadata: Metadata = {
+  title: `${APP_NAME} - ${APP_DESCRIPTION}`,
+}
+
+export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
-    <>
-      <div className="flex flex-col">
-        <div className="border-b">
-          <div className="flex h-16 items-center px-4">
-            <Link href="/" className="w-36">
-              <Image
-                src="/assets/icons/logo.svg"
-                width={48}
-                height={48}
-                alt={`${APP_NAME} logo`}
-              />
-            </Link>
-            <MainNav className="mx-6" />
-            <div className="ml-auto flex items-center space-x-4">
-              <Menu />
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 space-y-4 p-8 pt-6">{children}</div>
-      </div>
-    </>
+    <html lang="en">
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
+          fontSans.variable
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
+      </body>
+    </html>
   )
 }
